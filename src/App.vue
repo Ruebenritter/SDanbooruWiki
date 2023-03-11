@@ -38,7 +38,7 @@
     </div>
   </header>
   <div class="row">
-    <SidebarMenu @menuItemClick="handleItemClick"/>
+    <SidebarMenu  v-if="!sidebarDisabled" @menuItemClick="handleItemClick"/>
     <MainContainer/>
   </div>
 
@@ -55,14 +55,34 @@ export default {
     SidebarMenu,
     MainContainer: MainContainer,
   },
+  created() {
+    this.checkRoute();
+  },
   methods: {
     handleItemClick(item) {
       const store = useMenuStore();
       store.setCurrentPath(item.path)
     },
-   
+    checkRoute() {
+      if ( this.$route.name == "login" || this.$route.name == "register" || this.$route.name == "forgot password") {
+        this.sidebarDisabled = true;
+        return;
+      }
+      this.sidebarDisabled = false;
+    }
   },
+  data() {
+    return {
+      sidebarDisabled: null,
+    }
+  },
+  watch: {
+    $route() {
+      this.checkRoute();
+      console.log(this.sidebarDisabled);
+    }
   }
+}
 
 </script>
 
@@ -72,4 +92,6 @@ export default {
   right: 0px;
   padding: 10px;
 }
+
+
 </style>
