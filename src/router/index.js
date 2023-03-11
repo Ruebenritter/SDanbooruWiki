@@ -1,23 +1,26 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import GalleryView from "../views/GalleryView.vue"
 import LinksView from "../views/LinksView.vue"
+import LoginView from "../views/LoginView.vue"
+import RegisterView from "../views/RegisterView.vue"
+import ForgotPassword from "../views/ForgotPassword.vue"
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
+      path: '/gallery',
       name: 'gallery',
-      component: HomeView,
+      component: GalleryView,
       meta: {
-        title: "gallery"
+        title: "Gallery"
       }
     },
     {
       path: '/about',
       name: 'about',
       meta: {
-        title: "about",
+        title: "About",
       },
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
@@ -29,14 +32,38 @@ const router = createRouter({
       name: 'links',
       component: LinksView,
       meta: {
-        title: "links"
+        title: "Links"
+      }
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+      meta: {
+        title: "Login"
+      }
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterView,
+      meta: {
+        title: "Register"
+      }
+    },
+    {
+      path: '/pw-reset',
+      name: 'pw-reset',
+      component: ForgotPassword,
+      meta: {
+        title: "Forgot Password"
       }
     },
   ]
 });
 
 router.beforeEach((to, from, next) => {
-  document.title = '${to.meta.title} | SDanbooruWiki';
+  document.title = `${to.meta.title} | SDanbooruWiki`;
   next();
 })
 

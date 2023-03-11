@@ -1,7 +1,7 @@
 
 <template>
   <main class="col col-lg-10">
-    <component :is="currentComponent"></component>
+    <router-view></router-view>
   </main>
 </template>
 

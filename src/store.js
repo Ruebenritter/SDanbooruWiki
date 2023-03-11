@@ -6,9 +6,9 @@ import AboutView from "./views/AboutView.vue";
 export const useMenuStore = defineStore("menuStore", {
     state: () => ({
         menuItems: [
-            { id: 0, label: "Gallery", path: "/"},
-            { id: 1, label: "Links", path: "/links"},
-            { id: 2, label: "About", path: "/about"}
+            { id: 0, label: "Gallery", path: "/", title: "gallery"},
+            { id: 1, label: "Links", path: "/links", title: 'links'},
+            { id: 2, label: "About", path: "/about", title: 'about'}
         ],
         selectedMenuItem: "default no selection",
         galleryImages: [],

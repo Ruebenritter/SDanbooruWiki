@@ -6,8 +6,8 @@
     class="container-fluid">
     <ul class="navbar-nav list-unstyled ps-0" v-for="menuItem in menuItems" :key="menuItem.id">
       <li class="nav-item pb-1">
-        <a class="nav-link link-dark" @click="$emit('menuItemClick', menuItem)">
-        {{ menuItem.label }}</a>
+        <router-link class="link nav-link link-dark" :to="{ name: menuItem.title}">
+        {{ menuItem.label }}</router-link>
       </li>
     </ul>
   </div>
