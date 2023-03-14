@@ -5,6 +5,7 @@ import { createPinia } from "pinia"
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
 import "@popperjs/core"
+import "./assets/base.css"
 
 
 

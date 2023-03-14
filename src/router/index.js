@@ -52,7 +52,7 @@ const router = createRouter({
       }
     },
     {
-      path: '/pw-reset',
+      path: '/login/pw-reset',
       name: 'pw-reset',
       component: ForgotPassword,
       meta: {

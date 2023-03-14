@@ -1,6 +1,6 @@
 
 <template>
-  <main class="nonscroll col col-lg-10">
+  <main class=" col col-lg-8">
     <router-view> </router-view>
   </main>
 </template>
@@ -36,8 +36,6 @@ export default {
 </script>
 
 <style lang="css" scoped>
-.nonscroll {
-  overflow: hidden;
-}
+
 </style>
 
