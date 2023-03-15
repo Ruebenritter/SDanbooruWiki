@@ -1,5 +1,5 @@
 <template>
-  <div class="col-2" id="menu-sidebar" :data-active-index="activeIndex">
+  <div id="menu-sidebar" :data-active-index="activeIndex">
     <div id="menu-items">
       <div class="menu-item-wrapper px-3" v-for="menuItem in menuItems" :key="menuItem.id" @mouseover="activeIndex = menuItem.id">
         <router-link class="menu-item" :to="{ name: menuItem.title}">
@@ -48,7 +48,8 @@
 <style lang="scss" scoped>
   .menu-item {
     color: var(--bs-orange);
-    font-size: 32px;
+    font-size: clamp(1vmin, 4vw, 4vmin);
+    font-family: "Merriweather", serif;
     text-decoration: none;
   }
 
@@ -58,8 +59,8 @@
   }
 
   #menu-sidebar {
-    height: 90vh;
-    border-right: 1px solid var(--bs-orange);
+    height: 100%;
+    width: 100%;
   }
 
   // hover effects
@@ -67,8 +68,8 @@
     opacity: 0.3;
   }
   #menu-items:hover~#menu-background-pattern {
-    background-size: 4vmin 4vmin;
-    opacity: 0.5;
+    background-size: 4.5vmin 4.5vmin;
+    opacity: 0.4;
   }
   #menu-sidebar[data-active-index="0"] > #menu-background-pattern {
     background-position: 0% -33%;
@@ -88,11 +89,11 @@
 
   #menu-background-pattern {
     height: 100vh;
-    width: 100%;
-
+    width: 100vw;
+    opacity: 0.2;
     background-image: radial-gradient(
       gray 9%,
-      transparent 9%
+      transparent 9%,
     );
 
     background-position: 0% 0%;

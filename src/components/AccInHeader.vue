@@ -4,8 +4,12 @@
 <template>
   <div>
    <!--Switch the Login & Profile elemtns depending on login status later #rework-->
-   
-   <router-link v-if="!userLoggedIn" class="link" :to="{ name: 'login'}">Login/Register</router-link>
+
+   <div class="login-wrapper d-flex justify-content-end">
+     <router-link v-if="!userLoggedIn" class="link-login" :to="{ name: 'login'}">Login</router-link>
+     <p class="text-divider">or</p>
+     <router-link class="link-register" :to="{ name: 'register'}">Register</router-link>
+   </div>
 
 <div class="flex-shrink-0 right dropdown" v-if="userLoggedIn">
     <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper="static">
@@ -43,6 +47,22 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.link-login, .link-register {
+  color: var(--triad2-300);
+  text-decoration: none;
+  font-size: large;
+  font-family: Arial, Helvetica, sans-serif;
+}
 
+.link-login {
+  padding-right: 10px;
+}
+.text-divider {
+  padding-right: 10px;
+  color: white;
+  text-decoration: none;
+  font-size: medium;
+  font-family: Arial, Helvetica, sans-serif;
+}
 </style>
 

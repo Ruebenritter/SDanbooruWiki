@@ -1,6 +1,6 @@
 
 <template>
-  <main class=" col col-lg-8">
+  <main>
     <router-view> </router-view>
   </main>
 </template>

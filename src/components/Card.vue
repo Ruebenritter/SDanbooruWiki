@@ -31,8 +31,8 @@ export default {
 
   .card {
     border: 1vm solid var(--bs-orange);
-    aspect-ratio: 1 / 1.6;
-    width: 24vmin;
+    aspect-ratio: 0.6;
+    width: clamp(10vmin, 30vw, 24vmin);
     position: relative;
     background-image: url("/meinahentaiExample.png");
     background-size: cover;

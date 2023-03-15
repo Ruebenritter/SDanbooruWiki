@@ -1,19 +1,10 @@
 <template>
   <div class="card-container">
-    <div class="row" v-for="index in 16" :key="index">
-      <div class="col-lg-3 col-sm-6">
-        <Card></Card>
-      </div>
-      <div class="col-lg-3 col-sm-6">
-        <Card></Card>
-      </div>
-      <div class="col-lg-3 col-sm-6">
-        <Card></Card>
-      </div>
-      <div class="col-lg-3 col-sm-6">
-        <Card></Card>
-      </div>
-    </div>
+    <!--create a row for each tag group/category/subclass depending on tree level-->
+     <div class="card-item row p-1" v-for="index in 8" :key="index">
+      <!--create a card depending on tree level content/children-->
+      <Card v-for="index in 5" :key="index"></Card>
+     </div>
   </div>
 
 </template>
@@ -36,20 +27,7 @@
 </script>
 
 <style lang="scss" scoped>
-  .gallery-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    grid-gap: 1rem;
-    grid-auto-rows: minmax(200px, auto);
-
-    @media screen and (max-width: 768px) {
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
-  }
-
   .card-container {
-    height: 800px;
-    overflow-y: scroll;
-    overflow-x: hidden;
+    overflow: scroll;
   }
 </style>
