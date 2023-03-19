@@ -47,9 +47,9 @@
 
 <style lang="scss" scoped>
   .menu-item {
-    color: var(--bs-orange);
+    color: var(--primary-900);
     font-size: clamp(1vmin, 4vw, 4vmin);
-    font-family: "Merriweather", serif;
+    font-family: "Arial", "Roboto", sans-serif;
     text-decoration: none;
   }
 

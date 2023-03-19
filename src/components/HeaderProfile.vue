@@ -5,10 +5,10 @@
   <div>
    <!--Switch the Login & Profile elemtns depending on login status later #rework-->
 
-   <div class="login-wrapper d-flex justify-content-end">
-     <router-link v-if="!userLoggedIn" class="link-login" :to="{ name: 'login'}">Login</router-link>
+   <div class="login-wrapper d-flex justify-content-end align-items-center">
+     <div v-if="!userLoggedIn" class="link-login" @click="$emit('showLoginModal')">Login</div>
      <p class="text-divider">or</p>
-     <router-link class="link-register" :to="{ name: 'register'}">Register</router-link>
+     <router-link class="link-register" to="#">Register</router-link>
    </div>
 
 <div class="flex-shrink-0 right dropdown" v-if="userLoggedIn">
@@ -28,7 +28,7 @@
 
 <script>
 export default {
-  name: 'AccInHeader',
+  name: 'HeaderProfile',
   created() {
 
   },
@@ -48,10 +48,11 @@ export default {
 
 <style lang="scss" scoped>
 .link-login, .link-register {
-  color: var(--triad2-300);
+  color: var(--complement-500);
   text-decoration: none;
   font-size: large;
   font-family: Arial, Helvetica, sans-serif;
+  cursor: pointer;
 }
 
 .link-login {
@@ -62,7 +63,9 @@ export default {
   color: white;
   text-decoration: none;
   font-size: medium;
+  margin: 0;
   font-family: Arial, Helvetica, sans-serif;
+  
 }
 </style>
 

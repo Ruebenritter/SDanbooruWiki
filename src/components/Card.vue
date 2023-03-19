@@ -36,6 +36,7 @@ export default {
     position: relative;
     background-image: url("/meinahentaiExample.png");
     background-size: cover;
+    z-index: 3;
   }
 
   .card::before {
@@ -55,7 +56,7 @@ export default {
     transition: background-position 350ms ease, transform 350ms ease;
     top: 0px;
     width: 100%;
-    z-index: 1;
+    z-index: 3;
   } 
 
   .card:hover:before {
@@ -74,12 +75,12 @@ export default {
     height: 100%;
     width: 100%;
     padding: 1vmin;
-    z-index: 2;
+    z-index: 4;
   }
 
   .card-title,.card-subtitle {
     color: white;
-    font-family: "Anek Latin", sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-weight: 400;
     margin: 0px;
     top: 87%;

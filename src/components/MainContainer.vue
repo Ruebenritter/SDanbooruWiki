@@ -1,7 +1,7 @@
 
 <template>
   <main>
-    <router-view> </router-view>
+    <router-view></router-view>
   </main>
 </template>
 
@@ -36,6 +36,9 @@ export default {
 </script>
 
 <style lang="css" scoped>
-
+main {
+  height: 100%;
+  z-index: 3;
+}
 </style>
 

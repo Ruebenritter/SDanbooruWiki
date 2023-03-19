@@ -8,7 +8,6 @@ import "@popperjs/core"
 import "./assets/base.css"
 
 
-
 const app = createApp(App)
 const pinia = createPinia();
 

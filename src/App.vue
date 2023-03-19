@@ -7,33 +7,37 @@
 
   <div class="container-fluid">
     <!--row with header-->
-    <div class="row">
-      
-        <header class="py-2 bg-dark">
-          <div class="container-fluid d-grid gap-3 align-items-center" style="grid-template-columns: 1fr 2fr 1fr;">
-            <div class="d-flex align-items-center col-lg-4 mb-2 mb-lg-0 link-dark text-decoration-none">
-              <router-link :to="{ name: 'gallery'}">
-                <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="32" height="32" /></router-link>
-            </div>
-            <div class="d-flex align-items-center">
-              <form class="w-100 me-3">
-                <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
-              </form>
-            </div>
-            <AccInHeader></AccInHeader>
+    <div class="header-split row">
+      <header class="py-1 bg-dark">
+        <div class="container-fluid d-grid gap-2 align-items-center" style="grid-template-columns: 1fr 2fr 1fr;">
+          <div class="col-lg-4">
+            <!--Logo in header with gallery link-->
+            <router-link class="text-decoration-none" :to="{ name: 'heroLanding'}">
+              <div class="row">
+                <div class="col-1 logo-image"></div>
+                <h4 class="logo-text col-1">SDanbooruWiki</h4>
+              </div>
+            </router-link>
           </div>
-        </header>
-     
+          <div class="d-flex align-items-center">
+            <form class="w-100 me-5">
+              <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
+            </form>
+          </div>
+          <HeaderProfile @showLoginModal="this.loginModalShow = true"></HeaderProfile>
+        </div>
+      </header>
+      <LoginModal v-if="loginModalShow" @hideLoginModal="this.loginModalShow = false"></LoginModal>
     </div>
     <!--row with 3 columsn: menu, main, banner-->
-    <div class="row">
+    <div class="page-split row">
       <!-- Sidebar for navigation menu -->
       <div class="banner-left col-2 bg-dark">
-        <SidebarMenu/>
+        <SidebarMenu />
       </div>
       <!-- Main Column should contain main page content -->
       <div class="main-center col-8 bg-dark">
-        <MainContainer>s</MainContainer>
+        <MainContainer></MainContainer>
       </div>
       <!-- Banner showcasing extra info regarding the main container-->
       <div class="banner-right col-2 bg-dark">
@@ -54,13 +58,15 @@
   import {
     useMenuStore
   } from "./store";
-  import AccInHeader from "./components/AccInHeader.vue";
+  import HeaderProfile from "./components/HeaderProfile.vue";
+  import LoginModal from "./views/LoginModal.vue";
 
   export default {
     components: {
       SidebarMenu,
       MainContainer,
-      AccInHeader,
+      HeaderProfile,
+      LoginModal,
     },
     created() {
       this.checkRoute();
@@ -76,11 +82,12 @@
           return;
         }
         this.sidebarDisabled = false;
-      }
+      },
     },
     data() {
       return {
         sidebarDisabled: null,
+        loginModalShow: null,
       }
     },
     watch: {
@@ -96,6 +103,7 @@
   header {
     border-bottom: 1px solid;
     border-color: var(--primary-900);
+
     form {
       input {
         border-color: var(--primary-900);
@@ -106,6 +114,28 @@
       background-color: black;
       color: white;
     }
+
+    .logo-text {
+      height: 100%;
+      font-size: 4vmin;
+      font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+      color: #27ae60;
+      padding: 0;
+      padding-left: 1vmin;
+      margin: 0;
+      align-self: center;
+    }
+
+    .logo-image {
+      background-image: url("/sdanbooru_logo_calm.png");
+      background-size: cover;
+      padding: 0;
+      margin: 0;
+      height: 6vmin;
+      width: 6vmin;
+      align-self: center;
+      
+    }
   }
 
   .banner-left {
@@ -115,7 +145,8 @@
   }
 
   .main-center {
-    height: 100vh;
+    height: 93vh;
+    padding: 0;
   }
 
   .banner-right {

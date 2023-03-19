@@ -1,13 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import GalleryView from "../views/GalleryView.vue"
 import LinksView from "../views/LinksView.vue"
-import LoginView from "../views/LoginView.vue"
-import RegisterView from "../views/RegisterView.vue"
-import ForgotPassword from "../views/ForgotPassword.vue"
+import HeroLanding from "../views/HeroLanding.vue"
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/',
+      name: 'heroLanding',
+      component: HeroLanding,
+      meta: {
+        title: "Welcome"
+      }
+    },
     {
       path: '/gallery',
       name: 'gallery',
@@ -33,30 +39,6 @@ const router = createRouter({
       component: LinksView,
       meta: {
         title: "Links"
-      }
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: LoginView,
-      meta: {
-        title: "Login"
-      }
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: RegisterView,
-      meta: {
-        title: "Register"
-      }
-    },
-    {
-      path: '/login/pw-reset',
-      name: 'pw-reset',
-      component: ForgotPassword,
-      meta: {
-        title: "Forgot Password"
       }
     },
   ]

@@ -23,7 +23,7 @@
 
 /* Material2 io color pallete based of primary --bs-orange */
 :root {
-  --primary-900: #fd7d14;
+  --primary-900:#3498db/* #14fd7d*/;
   --primary-800: #ffa720;
   
   --complement-500: #1494fd;
@@ -32,7 +32,7 @@
   --analog2-500: #fdf114;
 
   --triad1-500: #94fd14;
-  --triad2-300: #14fd7d;
+  --triad2-300: #fd7d14;
 
 }
 
