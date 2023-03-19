@@ -24,10 +24,10 @@
               <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
             </form>
           </div>
-          <HeaderProfile @showLoginModal="this.loginModalShow = true"></HeaderProfile>
+          <HeaderProfile @showLoginModal="showModal"></HeaderProfile>
         </div>
       </header>
-      <LoginModal v-if="loginModalShow" @hideLoginModal="this.loginModalShow = false"></LoginModal>
+      <LoginModal v-if="loginModalShow" :form="activeForm" @hideLoginModal="hideModal"></LoginModal>
     </div>
     <!--row with 3 columsn: menu, main, banner-->
     <div class="page-split row">
@@ -83,11 +83,21 @@
         }
         this.sidebarDisabled = false;
       },
+      showModal(form) {
+        this.activeForm = form;
+        this.loginModalShow = true;
+        console.log("App: " + this.activeForm);
+      },
+      hideModal() {
+        this.activeForm = null;
+        this.loginModalShow = false;
+      }
     },
     data() {
       return {
         sidebarDisabled: null,
         loginModalShow: null,
+        activeForm: "",
       }
     },
     watch: {

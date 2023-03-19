@@ -6,7 +6,7 @@
    <!--Switch the Login & Profile elemtns depending on login status later #rework-->
 
    <div class="login-wrapper d-flex justify-content-end align-items-center">
-     <div v-if="!userLoggedIn" class="link-login" @click="$emit('showLoginModal')">Login</div>
+     <div v-if="!userLoggedIn" class="link-login" @click="$emit('showLoginModal', 'LoginForm')">Login</div>
      <p class="text-divider">or</p>
      <router-link class="link-register" to="#">Register</router-link>
    </div>
