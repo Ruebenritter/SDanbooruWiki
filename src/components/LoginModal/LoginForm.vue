@@ -13,6 +13,8 @@
 </template>
 
 <script>
+
+
   export default {
     name: 'LoginForm',
     created() {
@@ -30,7 +32,8 @@
     methods: {
       switchFormTo(newForm) {
         this.$emit('switch', newForm);
-      }
+      },
+
     },
   }
 </script>
@@ -44,13 +47,13 @@
     width: 100%;
 
     background-color: transparent;
-    border: 3px solid black;
+    // border: 3px solid black;
 
     form {
       display: flex;
       flex-direction: column;
       background-color: transparent;
-      border: 3px solid teal;
+      // border: 3px solid teal;
       width: 80%;
 
       input, button {
@@ -58,6 +61,10 @@
         height: 4vmin;
         border: 2px solid var(--primary-900);
         border-radius: 0.5vmin;
+      }
+
+      button {
+        background-color: var(--analog1-500);
       }
     }
   }

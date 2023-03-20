@@ -8,7 +8,7 @@
    <div class="login-wrapper d-flex justify-content-end align-items-center">
      <div v-if="!userLoggedIn" class="link-login" @click="$emit('showLoginModal', 'LoginForm')">Login</div>
      <p class="text-divider">or</p>
-     <router-link class="link-register" to="#">Register</router-link>
+     <div class="link-register" @click="$emit('showLoginModal', 'RegisterForm')">Register</div>
    </div>
 
 <div class="flex-shrink-0 right dropdown" v-if="userLoggedIn">
