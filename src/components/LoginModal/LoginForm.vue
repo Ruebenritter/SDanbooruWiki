@@ -3,7 +3,8 @@
     <form class="login">
           <input type="text" placeholder="email" v-model="email" />
           <input type="text" placeholder="password" v-model="password" />
-          <button class="login-button">SIGN IN</button>
+          <button @click.prevent="signIn" class="login-button">SIGN IN</button>
+          <div v-show="error" class="error">{{ this.errorMsg }}</div>
     </form>
     <div class="login-options">
       <p @click="switchFormTo('RegisterForm')">Register now!</p>
@@ -13,7 +14,7 @@
 </template>
 
 <script>
-
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
   export default {
     name: 'LoginForm',
@@ -22,8 +23,10 @@
     },
     data() {
       return {
-        email: null,
-        password: null,
+        email: "",
+        password: "",
+        error: null,
+        errorMsg: "",
       }
     },
     props: {
@@ -33,7 +36,21 @@
       switchFormTo(newForm) {
         this.$emit('switch', newForm);
       },
+      signIn() {
+        const firebaseAuth = getAuth();
+        signInWithEmailAndPassword(firebaseAuth, this.email, this.password).then((userCredential) => {
+          this.error = false;
+          this.errorMsg = "";
 
+          const user = userCredential.user;
+          this.switchFormTo('close');
+          this.$router.push({ name: 'gallery'});
+          
+        }).catch((error) => {
+          this.error = true;
+          this.errorMsg = error.message;
+        });
+      }
     },
   }
 </script>

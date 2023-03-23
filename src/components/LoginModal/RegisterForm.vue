@@ -17,9 +17,11 @@
 </template>
 
 <script>
-import { firebaseApp } from "../../firebase/firebaseInit"
-import db from "../../firebase/firebaseInit.js";
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
+  import db from "../../firebase/firebaseInit.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword
+  } from 'firebase/auth'
 
   export default {
     name: 'RegisterForm',
@@ -43,28 +45,30 @@ import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
         this.$emit('switch', newForm)
       },
       async register() {
-        if ( this.email !== "" &&
-        this.username !== "" &&
-        this.password !== "")
-        {
+        if (this.email !== "" &&
+          this.username !== "" &&
+          this.password !== "") {
           // reset error message
           this.error = false;
           this.errorMsg = "";
 
           const firebaseAuth = getAuth();
           createUserWithEmailAndPassword(firebaseAuth, this.email, this.password)
-          .then((userCredential) => {
-            const user = userCredential.user;
-            console.log(user);
-          });
-     
+            .then((userCredential) => {
+              const user = userCredential.user;
+              console.log(user);
+            });
+
           /*
           const dataBase = db.collection("users").doc(user.uid);
           await dataBase.set({
             username: this.username,
             email: this.email,
           });*/
-          this.$router.push({name: 'gallery'});
+          this.switchForm('close');
+          this.$router.push({
+            name: 'gallery'
+          });
 
           return;
         }

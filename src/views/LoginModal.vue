@@ -3,7 +3,7 @@
   when clicked outside it should close
 -->
 <template>
-  <div class="modal d-flex flex-column" tabindex="-1" role="dialog" @click="$emit('hideLoginModal')">
+  <div class="modal d-flex flex-column" tabindex="-1" role="dialog" @click="hideModal">
     <!--div for background effects-->
     <div class="modal-background d-flex" @click.stop="">
       <!--div for profile pic or event logos-->
@@ -35,8 +35,13 @@ import ResetPWForm from '../components/LoginModal/ResetPWForm.vue';
     components: { LoginForm, RegisterForm, ResetPWForm },
     methods: {
       switchForm(form) {
+        if(form === 'close') {
+          this.hideModal();
+        }
         this.activeForm = form;
-        console.log(this.activeForm);
+      },
+      hideModal() {
+        this.$emit('hideLoginModal');
       }
     },
     props: {

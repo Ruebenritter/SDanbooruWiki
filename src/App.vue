@@ -29,7 +29,7 @@
       </header>
       <LoginModal v-if="loginModalShow" :form="activeForm" @hideLoginModal="hideModal"></LoginModal>
     </div>
-    <!--row with 3 columsn: menu, main, banner-->
+    <!--row with 3 column: menu, main, banner-->
     <div class="page-split row">
       <!-- Sidebar for navigation menu -->
       <div class="banner-left col-2 bg-dark">
