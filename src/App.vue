@@ -4,7 +4,6 @@
 
 
 <template>
-
   <div class="container-fluid">
     <!--row with header-->
     <div class="header-split row">
