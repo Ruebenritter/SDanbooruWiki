@@ -1,4 +1,3 @@
-
 <template>
   <main>
     <router-view></router-view>
@@ -8,29 +7,20 @@
 <script>
 import { useMenuStore } from '../store'
 
-
 export default {
   name: 'MainContainer',
-  created() {
-
-  },
+  created() {},
   data() {
-    return {
-    }
+    return {}
   },
-  props: {
-   
-  },
-  methods: {
-   
-  },
+  props: {},
+  methods: {},
   computed: {
     currentComponent() {
-      const menuStore = useMenuStore();
+      const menuStore = useMenuStore()
 
       return menuStore.getCurrentComponent
     }
-    
   }
 }
 </script>
@@ -41,4 +31,3 @@ main {
   z-index: 3;
 }
 </style>
-

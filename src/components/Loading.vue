@@ -1,30 +1,17 @@
-
 <template>
-  <div>
-   
-  </div>
+  <div></div>
 </template>
 
 <script>
 export default {
   name: 'LoadingTransition',
-  created() {
-
-  },
+  created() {},
   data() {
-    return {
-    }
+    return {}
   },
-  props: {
-   
-  },
-  methods: {
-   
-  },
+  props: {},
+  methods: {}
 }
 </script>
 
-<style lang="scss" scoped>
-
-</style>
-
+<style lang="scss" scoped></style>

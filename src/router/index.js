@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import GalleryView from "../views/GalleryView.vue"
-import LinksView from "../views/LinksView.vue"
-import HeroLanding from "../views/HeroLanding.vue"
+import GalleryView from '../views/GalleryView.vue'
+import LinksView from '../views/LinksView.vue'
+import HeroLanding from '../views/HeroLanding.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,7 +11,7 @@ const router = createRouter({
       name: 'heroLanding',
       component: HeroLanding,
       meta: {
-        title: "Welcome"
+        title: 'Welcome'
       }
     },
     {
@@ -19,14 +19,14 @@ const router = createRouter({
       name: 'gallery',
       component: GalleryView,
       meta: {
-        title: "Gallery"
+        title: 'Gallery'
       }
     },
     {
       path: '/about',
       name: 'about',
       meta: {
-        title: "About",
+        title: 'About'
       },
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
@@ -38,15 +38,15 @@ const router = createRouter({
       name: 'links',
       component: LinksView,
       meta: {
-        title: "Links"
+        title: 'Links'
       }
-    },
+    }
   ]
-});
+})
 
 router.beforeEach((to, from, next) => {
-  document.title = `${to.meta.title} | SDanbooruWiki`;
-  next();
+  document.title = `${to.meta.title} | SDanbooruWiki`
+  next()
 })
 
 export default router

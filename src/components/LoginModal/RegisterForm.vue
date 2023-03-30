@@ -2,9 +2,7 @@
   <div class="form-wrapper">
     <h4 class="register-task">Create your SDanbooruWiki account!</h4>
     <div class="login-options">
-      <p class="" @click="switchForm('LoginForm')">
-        Already have an account?
-      </p>
+      <p class="" @click="switchForm('LoginForm')">Already have an account?</p>
     </div>
     <form class="register">
       <input type="text" placeholder="username" v-model="username" />
@@ -17,78 +15,69 @@
 </template>
 
 <script>
-  import db from "../../firebase/firebaseInit.js";
-  import {
-    getAuth,
-    createUserWithEmailAndPassword
-  } from 'firebase/auth'
+import db from '../../firebase/firebaseInit.js'
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
 
-  export default {
-    name: 'RegisterForm',
-    created() {
-
+export default {
+  name: 'RegisterForm',
+  created() {},
+  data() {
+    return {
+      username: '',
+      email: '',
+      password: '',
+      error: '',
+      errorMsg: ''
+    }
+  },
+  props: {},
+  methods: {
+    switchForm(newForm) {
+      this.$emit('switch', newForm)
     },
-    data() {
-      return {
-        username: "",
-        email: "",
-        password: "",
-        error: "",
-        errorMsg: "",
-      }
-    },
-    props: {
+    async register() {
+      if (this.email !== '' && this.username !== '' && this.password !== '') {
+        // reset error message
+        this.error = false
+        this.errorMsg = ''
 
-    },
-    methods: {
-      switchForm(newForm) {
-        this.$emit('switch', newForm)
-      },
-      async register() {
-        if (this.email !== "" &&
-          this.username !== "" &&
-          this.password !== "") {
-          // reset error message
-          this.error = false;
-          this.errorMsg = "";
+        const firebaseAuth = getAuth()
+        createUserWithEmailAndPassword(firebaseAuth, this.email, this.password).then(
+          (userCredential) => {
+            const user = userCredential.user
+            console.log(user)
+          }
+        )
 
-          const firebaseAuth = getAuth();
-          createUserWithEmailAndPassword(firebaseAuth, this.email, this.password)
-            .then((userCredential) => {
-              const user = userCredential.user;
-              console.log(user);
-            });
-
-          /*
+        /*
           const dataBase = db.collection("users").doc(user.uid);
           await dataBase.set({
             username: this.username,
             email: this.email,
           });*/
-          this.switchForm('close');
-          this.$router.push({
-            name: 'gallery'
-          });
+        this.switchForm('close')
+        this.$router.push({
+          name: 'gallery'
+        })
 
-          return;
-        }
+        return
+      }
 
-        this.error = true;
-        this.errorMsg = "Please fill out all fields!";
-        return;
-      },
-    },
+      this.error = true
+      this.errorMsg = 'Please fill out all fields!'
+      return
+    }
   }
+}
 </script>
 
-
 <style lang="scss" scoped>
-  .register-task {
-    font-family: Arial, Helvetica, sans-serif;
-    color: white;
-  }
+.register-task {
+  font-family: Arial, Helvetica, sans-serif;
+  color: white;
+}
 
-  .login-optinos {
-    padding: 0;
-  }
+.login-optinos {
+  padding: 0;
+}
 </style>
