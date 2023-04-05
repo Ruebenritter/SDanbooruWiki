@@ -1,24 +1,53 @@
 <template>
-  <div class="card m-2 overflow-hidden">
+  <div class="card m-2 overflow-hidden" :style="{ backgroundImage: fetchCardIllustration}" @click="$emit('cardClicked', this.title)">
     <div class="card-content rounded">
-      <h3 class="card-title">Tag Group</h3>
+      <h3 class="card-title">{{ title }}</h3>
       <h4 class="card-subtitle">
-        girl dark artstyle digital artist drawing pose portrait fantasy night moonlight melancholic
-        sad lonely beauty fashion dress gothic elegant femme fatale
+        Preview card content here!
       </h4>
     </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'CardItem',
   created() {},
   data() {
-    return {}
+    return {
+
+    }
   },
-  props: {},
-  methods: {}
+  props: {
+    title: String,
+  },
+  methods: {
+  async getImagePath() {
+    const title = this.title.toLowerCase().replace(/[\s#]/g, '_').replace(/\s+/g, "");
+    const imagePath = `/TagGroupIllustrations/${title}_illustration.png`;
+    const defaultImagePath = '/meinahentaiExample.png';
+    const pathExists = await this.imageExists(imagePath);
+    console.log(`GetImagePath: ${pathExists}`)
+    return pathExists ? imagePath : defaultImagePath;
+  },
+  async imageExists(path){
+    try {
+      await axios.head(path);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+},
+computed: {
+  fetchCardIllustration() {
+    let url = `url(${this.getImagePath()})`;
+    console.log(url);
+    return url;
+  }
+}
 }
 </script>
 
@@ -28,7 +57,6 @@ export default {
   aspect-ratio: 0.6;
   width: clamp(10vmin, 30vw, 24vmin);
   position: relative;
-  background-image: url('/meinahentaiExample.png');
   background-size: cover;
   z-index: 3;
 }
@@ -37,9 +65,9 @@ export default {
   background: linear-gradient(
     130deg,
     transparent 0% 40%,
-    var(--analog2-500) 66%,
-    var(--primary-900) 83%,
-    var(--analog1-500) 100%
+    transparent 66%,
+    transparent 83%,
+    var(--primary-900) 100%
   );
   background-position: 0% 0%;
   background-size: 300% 300%;
@@ -60,6 +88,7 @@ export default {
 
 .card:hover > .card-content > .card-title {
   top: 5%;
+  
 }
 .card:hover > .card-content > .card-subtitle {
   top: 5%;
@@ -80,6 +109,7 @@ export default {
   margin: 0px;
   top: 87%;
   left: 5%;
+  text-shadow: 2px 2px 2px rgba(0,0,0,0.5);
   transition: top 300ms ease, color 300ms ease;
 }
 

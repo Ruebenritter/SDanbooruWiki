@@ -13,17 +13,13 @@
       <div class="slanted-border"></div>
       <div class="col background-image">
         <div class="card-shine" @mouseover="presentCards"></div>
+        <div class="popout-card-left"></div>
+    <div class="popout-card-mid"></div>
+    <div class="popout-card-right"></div>
       </div>
     </div>
     <!--:class="{'show': cardFan}" v-show="cardsVisible"-->
-    <div
-      class="popout-card-left"
-      :class="{ show: cardFan }"
-      v-show="cardsVisible"
-      :key="resetCards"
-    ></div>
-    <div class="popout-card-mid" :class="{ show: cardFan }" v-show="cardsVisible"></div>
-    <div class="popout-card-right" :class="{ show: cardFan }" v-show="cardsVisible"></div>
+   
   </div>
 </template>
 
@@ -40,20 +36,7 @@ export default {
   },
   props: {},
   methods: {
-    presentCards() {
-      this.showCards()
-      this.cardFan = true
-    },
-    showCards() {
-      this.cardsVisible = true
-      this.resetCards = false
-      setTimeout(() => this.hideCards(), 3000)
-    },
-    hideCards() {
-      this.cardsVisible = false
-      this.resetCards = true
-      this.cardFan = false
-    }
+   
   }
 }
 </script>
@@ -137,6 +120,7 @@ export default {
   border-radius: 12px;
   transform: rotateZ(13deg);
   z-index: 3;
+  transition: transform 0.5s ease;
 }
 
 .card-shine::before {
@@ -154,6 +138,19 @@ export default {
   box-shadow: 0px 0px 200px 50px rgba(215, 210, 0, 0.8);
 }
 
+.card-shine:hover .popout-card-left {
+  transform: translate(-50%, -50%);
+}
+
+.card-shine:hover .popout-card-mid {
+  transform: translate(-100%, -50%);
+}
+
+.card-shine:hover .popout-card-right {
+  transform: translate(-150%, -50%);
+}
+
+
 .popout-card-left,
 .popout-card-mid,
 .popout-card-right {
@@ -165,14 +162,18 @@ export default {
   background-color: gold;
   border: 2px solid black;
   border-radius: 12px;
-  transform: translateX(10%) rotateZ(10deg);
-  transition: transform 500ms ease, width 500ms ease, height 500ms ease;
+  transform: translate(0%, -50%);
+  transition: transform 0.5s ease;
 }
 
-.popout-card-left.show {
-  background-color: blue;
-  width: 40vmin;
-  height: 50vmin;
-  transform: translateX(-300%) translateY(-25%) rotateZ(0deg);
+.popout-card-left {
+  z-index: 4;
 }
+.popout-card-mid{
+  z-index: 5;
+}
+.popout-card-right{
+  z-index: 6;
+}
+
 </style>
