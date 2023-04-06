@@ -109,7 +109,7 @@ export default {
   watch: {
     $route() {
       this.checkRoute()
-      console.log(this.sidebarDisabled)
+      // console.log(this.sidebarDisabled)
     }
   }
 }

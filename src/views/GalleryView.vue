@@ -1,13 +1,20 @@
 <template>
-  <button @click="navigateUp">BACK</button>
+  <div class="row gallery-header">
+    <button class="col" @click="navigateUp">Up from {{ this.level }}</button>
+    <div class="metadata col-8">
+      Put the stable diffusion settings here
+    </div>
+    <button class="col">Copy to clipboard</button>
+  </div>
   <div class="list-scroll">
     <ul class="card-list">
       <!--create a row for each tag group/category/subclass depending on tree level-->
-      <li class="card-item" v-for="title, index in currentCardChoices" :key="index">
+      <li class="card-item" v-for="title in currentCardChoices" :key="title">
         <!--create a card depending on tree level content/children-->
         <Card :title="title" @cardClicked="level === HierarchyLevels.TAG_GROUP ? selectTagGroup(title) : 
         level === HierarchyLevels.CATEGORY ? selectCategory(title) : 
-        level === HierarchyLevels.SUBCATEGORY ? selectSubcategory(title) : selectTag(title)">
+        level === HierarchyLevels.SUBCATEGORY ? selectSubcategory(title) : selectTag(title)"
+        :illustration="null">
         </Card>
       </li>
     </ul>
@@ -34,15 +41,38 @@
   export default {
     name: 'GalleryView',
     created() {
-      console.log('Gallery created!');
-      const lastLoadedCategory = localStorage.getItem('lastLoadedCategory');
-      if (this.level != lastLoadedCategory)
-        this.loadTagGroups();
-      else {
-        const cardChoices = localStorage.getItem('currentCardChoices');
-        this.currentCardChoices = JSON.parse(cardChoices);
+
+      const navigationState = localStorage.getItem(this.NAVIGATION_STATE);
+
+      if(navigationState) {
+        console.log(`Gallery created with navigation state: \n${navigationState}.` )
+        const { level, tagGroup, category, subcategory, tag } = JSON.parse(navigationState);
+        this.level = level;
+        this.selected.tagGroup = tagGroup;
+        this.selected.category = category;
+        this.selected.subcategory = subcategory;
+        this.selected.tag = tag;
+      }
+
+      switch(this.level){
+        case HierarchyLevels.TAG_GROUP:
+          this.getTagGroups();
+          break;
+        case HierarchyLevels.CATEGORY:
+          this.getTagGroupCategories(this.selected.tagGroup);
+          break;
+        case HierarchyLevels.SUBCATEGORY:
+          this.getCategorySubTags(this.selected.category);
+          break;
+        case HierarchyLevels.TAG:
+          this.getSubcategoryTags(this.selected.subcategory);
+          break;
+        default: 
+          this.getTagGroups();
+          break;
       }
     },
+
     data() {
       return {
         level: HierarchyLevels.TAG_GROUP, // default: tag groups then: category > subcategory > tag  
@@ -52,121 +82,150 @@
           subcategory: String,
           tag: String,
         },
-        availableChoices: {
-          categories: [],
-          subcategories: [],
-          tags: [],
-          tagDetails: [],
-        },
         currentCardChoices: [],
         HIERARCHY_COLLECTION: 'DanbooruTags',
+        NAVIGATION_STATE: 'galleryNavigationState',
       }
     },
     props: {
-      
+
     },
     methods: {
-      async loadTagGroups() {
-        console.log("Called loadTagGroups");
+      selectTagGroup(tagGroup) {
+        // console.log(`Clicked on ${tagGroup}.`)
+        let tagGroupKey = this.titleToKey(tagGroup);
+        this.selected.tagGroup = tagGroupKey;
+        this.getTagGroupCategories(tagGroupKey);
+        this.level = HierarchyLevels.CATEGORY;
+
+        //save changes to session storage
+      },
+      selectCategory(category) {
+        // console.log(`Clicked on ${category}.`)
+        let categoryKey = this.titleToKey(category);
+        this.level = HierarchyLevels.SUBCATEGORY;
+        this.selected.category = categoryKey;
+        this.getCategorySubTags(categoryKey);
+
+        //save changes to session storage
+      },
+      selectSubcategory(subcategory) {
+        let subKey = this.titleToKey(subcategory);
+        this.level = HierarchyLevels.TAG;
+        this.selected.subcategory = subKey;
+        this.getSubcategoryTags(subKey);
+
+        //save changes to session storage
+      },
+      selectTag(tag) {
+        this.selected.tag = tag;
+
+        // save changes to session storage
+      },
+      async getTagGroups() {
         const tagGroupSet = new Set();
         const querySnapshot = await getDocs(collection(db, 'DanbooruTags'));
         querySnapshot.forEach((doc) => {
           const tagGroup = doc.data()['tag group'];
-          // Set every word to UpperCase
-          let tagTitle = this.keyToTitle(tagGroup)
-          tagGroupSet.add(tagTitle);
+          let titles = this.keyToTitle(tagGroup);
+          tagGroupSet.add(titles);
         });
         const tagGroups = Array.from(tagGroupSet);
         this.currentCardChoices = tagGroups;
-        this.lastLoadedCategory = 'tag groups';
-        localStorage.setItem('currentCardChoices', JSON.stringify(tagGroups))
-        localStorage.setItem('lastLoadedCategory', this.level)
-
+      
+        //save changes to session storage
       },
-      removeLocalStorageHierarchy() {
-        localStorage.removeItem('currentCardChoices');
-        localStorage.removeItem('lastLoadedCategory');
-      },
-      selectTagGroup(tagGroup) {
-        console.log(`Clicked on ${tagGroup}.`)
-        this.selected.tagGroup = tagGroup;
-        // logic to get available categories and update currentCardChoices
-        this.getTagGroupCategories(tagGroup);
-        this.level++;
-        console.log(`Selected tag group: New level is ${this.level}`)
-      },
-      selectCategory(category) {
-        console.log(`Clicked on ${category}.`)
-        this.level = HierarchyLevels.SUBCATEGORY;
-        this.selected.category = category
-        // logic to get available subcategories and tags and update currentCardChoices
-      },
-      selectSubcategory(subcategory) {
-        this.level = HierarchyLevels.TAG;
-        this.selected.subcategory = subcategory;
-        // logic to get available tags and update currentCardChoices
-      },
-      selectTag(tag) {
-        // logic to show tag details in card
-        this.selected.tag = tag;
-      },
-      async getTagGroupCategories(tagGroup){
-        let tagGroupKey = this.titleToKey(tagGroup);
-        console.log(`Get categories for ${tagGroupKey}`);
+      async getTagGroupCategories(tagGroup) {
         const categoriesSet = new Set();
-        const q = query(collection(db, this.HIERARCHY_COLLECTION), where("tag group", "==", tagGroupKey));
+        const q = query(collection(db, this.HIERARCHY_COLLECTION), where("tag group", "==", tagGroup));
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
           const categoryName = doc.data().category;
-          // Set every word to UpperCase
-          let categoryTitle = this.keyToTitle(categoryName);
-          categoriesSet.add(categoryTitle);
+          categoriesSet.add(this.keyToTitle(categoryName));
         });
         const categories = Array.from(categoriesSet);
-        this.currentCardChoices = []
-        this.currentCardChoices = [...categories];
-        console.log(this.currentCardChoices);
-        this.lastLoadedCategory = 'category';
-        localStorage.setItem('currentCardChoices', JSON.stringify(this.currentCardChoices))
-        localStorage.setItem('lastLoadedCategory', this.level)
-      },
-      async getCategorySubTags(category){
+        this.currentCardChoices = categories;
+        
 
+        //save changes to session storage
       },
-      async getSubcategorytags(subcategory) {
-
+      async getCategorySubTags(category) {
+        // Show subcategories next to tags without subcategory
+        const subcategoriesSet = new Set();
+        const tagSet = new Set();
+        const q = query(collection(db, this.HIERARCHY_COLLECTION) , where("tag group", "==", this.selected.tagGroup), where("category", "==", category));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          const subcategoryName = doc.data().subcategory;
+          const tagName = doc.id;
+          console.log(tagName);
+          if (subcategoryName) {
+            let subcategoryTitle = this.keyToTitle(subcategoryName);
+            subcategoriesSet.add(subcategoryTitle);
+          } else {
+            tagSet.add(tagName);
+          }
+          //save changes to session storage
+        });
+        const subcategories = Array.from(subcategoriesSet);
+          const tags = Array.from(tagSet);
+          this.currentCardChoices = [...subcategories, ...tags]
+      },
+      async getSubcategoryTags(subcategory) {
+        console.log(`Get Tags for ${subcategory} in l168.`)
+        const tagSet = new Set();
+        const q = query(collection(db, this.HIERARCHY_COLLECTION), where("tag group", "==", this.selected.tagGroup), where("category", "==", this.selected.category), where("subcategory", "==", subcategory));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          const tag = doc.id;
+          // console.log(`doc with tag: ${tagKey}`)
+          tagSet.add(tag);
+        });
+        const tags = Array.from(tagSet);
+        this.currentCardChoices = tags;
+        //save changes to session storage
       },
       async getTagDetails(tag) {
-
+        //save changes to session storage
       },
       navigateUp() {
-        switch(this.level) {
-          case 1:
-            this.selected.tagGroup = null;
-            this.availableChoices.categories = []
-            this.loadTagGroups();
-            break;
-          case 2:
-            this.selected.category = null;
-            this.availableChoices.subcategories = [];
-            this.availableChoices.tags = [];
-            break;
-          case 3:
-            this.selected.subcategory = null;
-            this.availableChoices.tags = [];
-            break;
+        if (this.level > 0) {
+          switch (this.level) {
+            case HierarchyLevels.CATEGORY:
+              this.selected.tagGroup = null;
+              this.getTagGroups();
+              break;
+            case HierarchyLevels.SUBCATEGORY:
+              this.selected.category = null;
+              this.getTagGroupCategories(this.selected.tagGroup);
+              break;
+            case HierarchyLevels.TAG:
+              this.getCategorySubTags(this.selected.category)
+              this.selected.subcategory = null;
+              
+            
+              break;
+          }
+          this.level--;
         }
-        this.level--;
       },
       titleToKey(title) {
         return title.toLowerCase(); //.replace(/[\s#]/g, '_').replace(/\s+/g, "");
       },
       keyToTitle(key) {
         let title = key.charAt(0).toUpperCase() + key.slice(1);
-          title = title.split(' ').map(word => {
-            return word.charAt(0).toUpperCase() + word.slice(1);
-          }).join(' ')
-          return title;
+        return title;
+      },
+      saveNavigationState() {
+        sessionStorage.setItem(this.NAVIGATION_STATE, JSON.stringify({
+          level: this.level,
+          selected: {
+            tagGroup: this.selected.tagGroup,
+            category: this.selected.category,
+            subcategory: this.selected.subcategory,
+            tag: this.selected.tag,
+          }
+        }))
       }
     },
     components: {
@@ -176,8 +235,19 @@
 </script>
 
 <style lang="scss" scoped>
+.gallery-header {
+  width: 100%;
+  padding-left: 1rem;
+  padding-top: 1vmin;
+}
+
+.metadata {
+  background-color: black;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+}
   .list-scroll {
-    margin-top: 1vh;
+    margin-top: 0;
     width: 100%;
     height: 90vh;
     overflow-y: scroll;
