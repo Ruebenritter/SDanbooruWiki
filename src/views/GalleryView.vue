@@ -1,10 +1,19 @@
 <template>
   <div class="row gallery-header">
-    <button class="col" @click="navigateUp">Up from {{ this.level }}</button>
-    <div class="metadata col-8">
-      Put the stable diffusion settings here
+    <div class="return col-1" @click="navigateUp">
+      <img src="/icons8-doppelt-links-32.png" >
     </div>
-    <button class="col">Copy to clipboard</button>
+    <div class="metadata col">
+      <div class="checkpoint-option">
+        CHECKPOINT OPTION
+      </div>
+      <div class="prompt-option">
+        PROMPT OPTION
+      </div>
+    </div>
+    <div class="copy-clipboard col-1">
+      <img src="icons8-kopieren-64.png">
+    </div>
   </div>
   <div class="list-scroll">
     <ul class="card-list">
@@ -71,6 +80,8 @@
           this.getTagGroups();
           break;
       }
+
+      this.tagMap = getTagHierarchy();
     },
 
     data() {
@@ -85,12 +96,20 @@
         currentCardChoices: [],
         HIERARCHY_COLLECTION: 'DanbooruTags',
         NAVIGATION_STATE: 'galleryNavigationState',
+        tagMap: []
       }
     },
     props: {
 
     },
     methods: {
+      // Get the tag collection from firestore
+      async getTagHierarchy() {
+        const querySnapshot = await getDocs(collection(db, 'DanbooruTags'));
+        querySnapshot.forEach((doc) => {
+          this.tagMap.add({"tag": doc.id, "hierarchy":  doc.data()});
+        })
+      },
       selectTagGroup(tagGroup) {
         // console.log(`Clicked on ${tagGroup}.`)
         let tagGroupKey = this.titleToKey(tagGroup);
@@ -245,6 +264,21 @@
   background-color: black;
   color: white;
   font-family: Arial, Helvetica, sans-serif;
+  border-radius: 5px;
+  padding: 0.5vmin;
+  margin: 2px;
+  display: flex;
+  gap: 2vmin;
+
+  .checkpoint-option {
+    align-self: center;
+    border-radius: 11px;
+    padding: 0.5vmin;
+    border: 1px solid white;
+  }
+  .prompt-option {
+    align-self: center;
+  }
 }
   .list-scroll {
     margin-top: 0;
@@ -286,5 +320,30 @@
   /* Handle on hover */
   ::-webkit-scrollbar-thumb:hover {
     background: var(--analog2-500);
+  }
+
+
+  .return, .copy-clipboard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bs-dark);
+    border-radius: 5px;
+    margin: 2px;
+    max-height: 38px;
+    // padding: 4px;
+     &:active {
+      background-color: white;
+      transform: scale(0.9)
+     }
+    
+     img{
+      width: 32px;
+      height: 32px;
+     }
+  }
+
+  .copy-clipboard{
+    border: 2px solid black;
   }
 </style>

@@ -1,6 +1,7 @@
 <template>
   <div>
     <h1>LinksView!</h1>
+    <p>Icons from https://icons8.de/</p>
   </div>
 </template>
 

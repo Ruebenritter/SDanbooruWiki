@@ -13,7 +13,7 @@
         >
           <div class="col-lg-4">
             <!--Logo in header with gallery link-->
-            <router-link class="text-decoration-none" :to="{ name: 'heroLanding' }">
+            <router-link class="text-decoration-none" :to="{ name: 'gallery' }">
               <div class="row">
                 <div class="col-1 logo-image"></div>
                 <h4 class="logo-text col-1">SDanbooruWiki</h4>

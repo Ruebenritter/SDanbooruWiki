@@ -1,21 +1,22 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import GalleryView from '../views/GalleryView.vue'
 import LinksView from '../views/LinksView.vue'
-import HeroLanding from '../views/HeroLanding.vue'
+// import HeroLanding from '../views/HeroLanding.vue'
+// import LandingPage from '../views/LandingPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // {
+    //   path: '/',
+    //   name: 'heroLanding',
+    //   component: LandingPage,
+    //   meta: {
+    //     title: 'Welcome'
+    //   }
+    // },
     {
       path: '/',
-      name: 'heroLanding',
-      component: HeroLanding,
-      meta: {
-        title: 'Welcome'
-      }
-    },
-    {
-      path: '/gallery',
       name: 'gallery',
       component: GalleryView,
       meta: {
