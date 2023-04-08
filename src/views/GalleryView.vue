@@ -1,7 +1,7 @@
 <template>
   <div class="row gallery-header">
     <div class="return col-1" @click="navigateUp">
-      <img src="/icons8-doppelt-links-32.png" >
+      <img src="/icons8-doppelt-links-32.png">
     </div>
     <div class="metadata col">
       <div class="checkpoint-option">
@@ -22,8 +22,7 @@
         <!--create a card depending on tree level content/children-->
         <Card :title="title" @cardClicked="level === HierarchyLevels.TAG_GROUP ? selectTagGroup(title) : 
         level === HierarchyLevels.CATEGORY ? selectCategory(title) : 
-        level === HierarchyLevels.SUBCATEGORY ? selectSubcategory(title) : selectTag(title)"
-        :illustration="null">
+        level === HierarchyLevels.SUBCATEGORY ? selectSubcategory(title) : selectTag(title)" :illustration="null">
         </Card>
       </li>
     </ul>
@@ -43,27 +42,74 @@
   import {
     collection,
     getDocs,
-    query,
-    where
   } from 'firebase/firestore'
 
   export default {
     name: 'GalleryView',
     created() {
 
-      const navigationState = localStorage.getItem(this.NAVIGATION_STATE);
-
-      if(navigationState) {
-        console.log(`Gallery created with navigation state: \n${navigationState}.` )
-        const { level, tagGroup, category, subcategory, tag } = JSON.parse(navigationState);
+      const navigationState = sessionStorage.getItem(this.NAVIGATION_STATE);
+      console.log(`Current session storage contains ${navigationState}.`);
+      if (navigationState) {
+        console.log(`Gallery created with navigation state: \n${navigationState}.`)
+        const {
+          level,
+          selectedTagGroup,
+          selectedCategory,
+          selectedSubcategory,
+          selectedTag
+        } = JSON.parse(navigationState);
         this.level = level;
-        this.selected.tagGroup = tagGroup;
-        this.selected.category = category;
-        this.selected.subcategory = subcategory;
-        this.selected.tag = tag;
+        this.selected.tagGroup = selectedTagGroup;
+        this.selected.category = selectedCategory;
+        this.selected.subcategory = selectedSubcategory;
+        this.selected.tag = selectedTag;
+      } else {
+        // Set navigation state with level 0 and no selections
+        console.log(`Set new navigation state in session storage!`);
+        this.saveNavigationState();
+      }
+    },
+    async mounted() {
+      // Load collections from session storage if possible
+      const storedTagMap = sessionStorage.getItem(this.STORED_TAG_MAP);
+      const storedImgMap = sessionStorage.getItem(this.STORED_IMG_MAP);
+      const storedTimestamp = sessionStorage.getItem(this.STORED_DATA_TIMESTAMP);
+
+      if ((storedTimestamp && Date.now() - storedTimestamp < 86400000) && storedTagMap && storedImgMap) {
+        this.tagMap = JSON.parse(storedTagMap);
+        this.imgMap = JSON.parse(storedImgMap);
+      } else {
+
+        // Get the tag collection from firestore
+        const querySnapshot = await getDocs(collection(db, this.HIERARCHY_COLLECTION));
+        querySnapshot.forEach((doc) => {
+          this.tagMap.push({
+            "tag": doc.id,
+            "hierarchy": doc.data()
+          });
+        });
+
+        // Get image link collection form firestore
+        const illustrationData = await getDocs(collection(db, this.IMG_LINK_COLLECTION));
+        illustrationData.forEach((doc) => {
+          this.imgMap.push({
+            "uid": doc.id,
+            "metadata": doc.data(),
+          });
+        });
+
+        // Save the current collections in session storage for ease of access
+        sessionStorage.setItem(this.STORED_DATA_TIMESTAMP, Date.now());
+        sessionStorage.setItem(this.STORED_TAG_MAP, JSON.stringify(this.tagMap));
+        sessionStorage.setItem(this.STORED_IMG_MAP, JSON.stringify(this.imgMap));
       }
 
-      switch(this.level){
+
+
+      // Set Gallery Components with appropriate content
+
+      switch (this.level) {
         case HierarchyLevels.TAG_GROUP:
           this.getTagGroups();
           break;
@@ -76,135 +122,137 @@
         case HierarchyLevels.TAG:
           this.getSubcategoryTags(this.selected.subcategory);
           break;
-        default: 
+        default:
           this.getTagGroups();
           break;
       }
-
-      this.tagMap = getTagHierarchy();
     },
-
     data() {
       return {
+        // navigation state
         level: HierarchyLevels.TAG_GROUP, // default: tag groups then: category > subcategory > tag  
         selected: {
-          tagGroup: String,
-          category: String,
-          subcategory: String,
-          tag: String,
+          tagGroup: "",
+          category: "",
+          subcategory: "",
+          tag: "",
         },
         currentCardChoices: [],
-        HIERARCHY_COLLECTION: 'DanbooruTags',
-        NAVIGATION_STATE: 'galleryNavigationState',
-        tagMap: []
+
+        // Firestore collection names
+        HIERARCHY_COLLECTION: 'DanbooruTags', // contains all tags that can be viewed in sdanbooru wiki
+        IMG_LINK_COLLECTION: 'TagIllustrations', // contains all img links for tags in the tag map
+        //  session storage for firestore collections
+        STORED_TAG_MAP: 'STORED_TAG_MAP',
+        STORED_IMG_MAP: 'STORED_IMG_MAP',
+        STORED_DATA_TIMESTAMP: 'STORED_DATA_TIMESTAMP',
+
+        NAVIGATION_STATE: 'GALLERY_NAVIGATION_STATE',
+
+        // gallery content maps
+        tagMap: [],
+        imgMap: [],
+
+        // Gallery filter options
+        selectedCheckpoint: "",
+        selectedPrompt: "",
+
+        availableCheckpoints: [],
+        availablePrompts: [],
       }
     },
     props: {
 
     },
     methods: {
-      // Get the tag collection from firestore
-      async getTagHierarchy() {
-        const querySnapshot = await getDocs(collection(db, 'DanbooruTags'));
-        querySnapshot.forEach((doc) => {
-          this.tagMap.add({"tag": doc.id, "hierarchy":  doc.data()});
-        })
-      },
+
       selectTagGroup(tagGroup) {
-        // console.log(`Clicked on ${tagGroup}.`)
+        // Update gallery state
         let tagGroupKey = this.titleToKey(tagGroup);
         this.selected.tagGroup = tagGroupKey;
         this.getTagGroupCategories(tagGroupKey);
         this.level = HierarchyLevels.CATEGORY;
-
-        //save changes to session storage
+        // Save state to session storage
+        this.saveNavigationState();
       },
       selectCategory(category) {
-        // console.log(`Clicked on ${category}.`)
+        // Update gallery state
         let categoryKey = this.titleToKey(category);
         this.level = HierarchyLevels.SUBCATEGORY;
         this.selected.category = categoryKey;
         this.getCategorySubTags(categoryKey);
-
         //save changes to session storage
+        // this.updateNavigationState("selectedCategory", categoryKey);
+        this.saveNavigationState();
       },
       selectSubcategory(subcategory) {
         let subKey = this.titleToKey(subcategory);
         this.level = HierarchyLevels.TAG;
         this.selected.subcategory = subKey;
         this.getSubcategoryTags(subKey);
-
         //save changes to session storage
+        this.saveNavigationState();
       },
       selectTag(tag) {
         this.selected.tag = tag;
-
         // save changes to session storage
+        this.saveNavigationState();
       },
+      // GETTERS
+
       async getTagGroups() {
         const tagGroupSet = new Set();
-        const querySnapshot = await getDocs(collection(db, 'DanbooruTags'));
-        querySnapshot.forEach((doc) => {
-          const tagGroup = doc.data()['tag group'];
-          let titles = this.keyToTitle(tagGroup);
-          tagGroupSet.add(titles);
+        this.tagMap.forEach((doc) => {
+          tagGroupSet.add(this.keyToTitle(doc.hierarchy["tag group"]));
         });
         const tagGroups = Array.from(tagGroupSet);
         this.currentCardChoices = tagGroups;
-      
-        //save changes to session storage
-      },
-      async getTagGroupCategories(tagGroup) {
-        const categoriesSet = new Set();
-        const q = query(collection(db, this.HIERARCHY_COLLECTION), where("tag group", "==", tagGroup));
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          const categoryName = doc.data().category;
-          categoriesSet.add(this.keyToTitle(categoryName));
-        });
-        const categories = Array.from(categoriesSet);
-        this.currentCardChoices = categories;
-        
 
         //save changes to session storage
       },
-      async getCategorySubTags(category) {
-        // Show subcategories next to tags without subcategory
-        const subcategoriesSet = new Set();
-        const tagSet = new Set();
-        const q = query(collection(db, this.HIERARCHY_COLLECTION) , where("tag group", "==", this.selected.tagGroup), where("category", "==", category));
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          const subcategoryName = doc.data().subcategory;
-          const tagName = doc.id;
-          console.log(tagName);
-          if (subcategoryName) {
-            let subcategoryTitle = this.keyToTitle(subcategoryName);
-            subcategoriesSet.add(subcategoryTitle);
-          } else {
-            tagSet.add(tagName);
+
+      getTagGroupCategories(tagGroup) {
+        const categorySet = new Set();
+        this.tagMap.forEach((doc) => {
+          if (doc.hierarchy["tag group"] == tagGroup) {
+            categorySet.add(this.keyToTitle(doc.hierarchy.category));
           }
-          //save changes to session storage
-        });
-        const subcategories = Array.from(subcategoriesSet);
-          const tags = Array.from(tagSet);
-          this.currentCardChoices = [...subcategories, ...tags]
+          const categories = Array.from(categorySet);
+          this.currentCardChoices = categories;
+        })
+        // this.currentCardChoices = categories;
+
+
       },
-      async getSubcategoryTags(subcategory) {
-        console.log(`Get Tags for ${subcategory} in l168.`)
+      getCategorySubTags(category) {
+        const subcategorySet = new Set();
         const tagSet = new Set();
-        const q = query(collection(db, this.HIERARCHY_COLLECTION), where("tag group", "==", this.selected.tagGroup), where("category", "==", this.selected.category), where("subcategory", "==", subcategory));
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          const tag = doc.id;
-          // console.log(`doc with tag: ${tagKey}`)
-          tagSet.add(tag);
+        this.tagMap.forEach((doc) => {
+          if (doc.hierarchy.category == category) {
+            let subcategory = doc.hierarchy.subcategory;
+            if (subcategory) {
+              subcategorySet.add(this.keyToTitle(subcategory));
+            } else {
+              tagSet.add(doc.tag);
+            }
+          }
+        });
+        const subcategories = Array.from(subcategorySet);
+        const tags = Array.from(tagSet);
+        this.currentCardChoices = [...subcategories, ...tags]
+      },
+      getSubcategoryTags(subcategory) {
+        const tagSet = new Set();
+        this.tagMap.forEach((doc) => {
+          if (doc.hierarchy.subcategory == subcategory) {
+            tagSet.add(doc.tag)
+          }
         });
         const tags = Array.from(tagSet);
         this.currentCardChoices = tags;
-        //save changes to session storage
+
       },
-      async getTagDetails(tag) {
+      getTagDetails(tag) {
         //save changes to session storage
       },
       navigateUp() {
@@ -221,11 +269,12 @@
             case HierarchyLevels.TAG:
               this.getCategorySubTags(this.selected.category)
               this.selected.subcategory = null;
-              
-            
+
+
               break;
           }
           this.level--;
+          this.saveNavigationState();
         }
       },
       titleToKey(title) {
@@ -238,13 +287,22 @@
       saveNavigationState() {
         sessionStorage.setItem(this.NAVIGATION_STATE, JSON.stringify({
           level: this.level,
-          selected: {
-            tagGroup: this.selected.tagGroup,
-            category: this.selected.category,
-            subcategory: this.selected.subcategory,
-            tag: this.selected.tag,
-          }
+          selectedTagGroup: this.selected.tagGroup,
+          selectedCategory: this.selected.category,
+          selectedSubcategory: this.selected.subcategory,
+          selectedTag: this.selected.tag,
         }))
+      },
+      updateNavigationState(key, newValue) {
+        // Pull 
+        const currentNavState = sessionStorage.getItem(this.NAVIGATION_STATE);
+        if (currentNavState) {
+          const parsedNavState = JSON.parse(currentNavState);
+          // Update
+          parsedNavState[key] = newValue;
+          // Push
+          sessionStorage.setItem(this.NAVIGATION_STATE, JSON.stringify(parsedNavState));
+        }
       }
     },
     components: {
@@ -254,37 +312,40 @@
 </script>
 
 <style lang="scss" scoped>
-.gallery-header {
-  width: 100%;
-  padding-left: 1rem;
-  padding-top: 1vmin;
-}
+  .gallery-header {
+    width: 100%;
+    padding-left: 1rem;
+    padding-top: 1vmin;
+  }
 
-.metadata {
-  background-color: black;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
-  border-radius: 5px;
-  padding: 0.5vmin;
-  margin: 2px;
-  display: flex;
-  gap: 2vmin;
-
-  .checkpoint-option {
-    align-self: center;
-    border-radius: 11px;
+  .metadata {
+    background-color: black;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    border-radius: 5px;
     padding: 0.5vmin;
-    border: 1px solid white;
+    margin: 2px;
+    display: flex;
+    gap: 2vmin;
+
+    .checkpoint-option {
+      align-self: center;
+      border-radius: 11px;
+      padding: 0.5vmin;
+      border: 1px solid white;
+    }
+
+    .prompt-option {
+      align-self: center;
+    }
   }
-  .prompt-option {
-    align-self: center;
-  }
-}
+
   .list-scroll {
     margin-top: 0;
     width: 100%;
     height: 90vh;
     overflow-y: scroll;
+    padding-bottom: 5vmin;
   }
 
   .card-list {
@@ -323,27 +384,29 @@
   }
 
 
-  .return, .copy-clipboard {
+  .return,
+  .copy-clipboard {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--bs-dark);
+    background-color: var(--primary-900);
     border-radius: 5px;
     margin: 2px;
     max-height: 38px;
+
     // padding: 4px;
-     &:active {
+    &:active {
       background-color: white;
       transform: scale(0.9)
-     }
-    
-     img{
+    }
+
+    img {
       width: 32px;
       height: 32px;
-     }
+    }
   }
 
-  .copy-clipboard{
+  .copy-clipboard {
     border: 2px solid black;
   }
 </style>

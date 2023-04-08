@@ -27,7 +27,7 @@
     methods: {
       async getBackgroundImage() {
         const title = this.title.toLowerCase().replace(/[\s#]/g, '_').replace(/\s+/g, "");
-        // if the background image is for a tag: get it from firebase cloud storage and match it to the selected prompt
+        // if the background image is for a tag: get it from firebase cloud storage and match it to the selected prompt/checkpoint/etc
 
 
         const imagePath = `/TagGroupIllustrations/${title}_illustration.png`;
