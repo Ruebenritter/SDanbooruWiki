@@ -1,14 +1,15 @@
+<!--Cards are card elements that contain navigation related keywords that sort the illustrated tags. They usually take their illustration from the public folder!-->
 <template>
   <div class="card m-2 overflow-hidden" :style="{ backgroundImage: cardIllustration }"
     @click="$emit('cardClicked', this.title)">
     <div class="card-content rounded">
-      <h3 class="card-title">{{ title }}</h3>
+      <h3 class="card-title" :style="{ fontSize: tagFontSize}">{{ title }}</h3>
       <h4 class="card-subtitle">
-        Preview card content here!
       </h4>
     </div>
   </div>
 </template>
+
 
 <script>
   export default {
@@ -47,6 +48,21 @@
         }
       }
     },
+    computed: {
+      tagFontSize() {
+        let tagLength = this.title.length;
+        if( tagLength > 14)
+          return '1rem';
+        if( tagLength > 12)
+          return '1.6rem';
+        if ( tagLength > 10)
+          return '2rem';
+        if ( tagLength > 8)
+          return '2.4rem';
+        return '2.6rem';
+        
+      }
+    }
   }
 </script>
 
@@ -104,8 +120,9 @@
     color: white;
     font-family: 'Roboto', sans-serif;
     font-weight: 400;
+    width: 90%;
     margin: 0px;
-    top: 87%;
+    top: 85%;
     left: 5%;
     text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
     transition: top 300ms ease, color 300ms ease;

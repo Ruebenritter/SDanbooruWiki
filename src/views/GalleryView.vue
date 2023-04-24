@@ -4,27 +4,27 @@
       <img src="/icons8-doppelt-links-32.png">
     </div>
     <div class="metadata col">
-      <div class="checkpoint-option">
-        CHECKPOINT OPTION
-      </div>
       <div class="prompt-option">
-        PROMPT OPTION
+        {{currentPrompt}}
       </div>
-    </div>
-    <div class="copy-clipboard col-1">
-      <img src="icons8-kopieren-64.png">
     </div>
   </div>
   <div class="list-scroll">
     <ul class="card-list">
       <!--create a row for each tag group/category/subclass depending on tree level-->
-      <li class="card-item" v-for="title in currentCardChoices" :key="title">
+      <li class="card-item selectables" v-for="title in currentNavCardChoices" :key="title">
         <!--create a card depending on tree level content/children-->
         <Card :title="title" @cardClicked="level === HierarchyLevels.TAG_GROUP ? selectTagGroup(title) : 
         level === HierarchyLevels.CATEGORY ? selectCategory(title) : 
         level === HierarchyLevels.SUBCATEGORY ? selectSubcategory(title) : selectTag(title)" :illustration="null">
         </Card>
       </li>
+
+        <li class="card-item tags" v-for="(doc, index) in currentTagCardChoices" :key="index">
+          <!--create a card depending on tree level content/children-->
+          <component :is="illustrationCardComponent" :docSnapshot="doc"></component>
+        </li>
+      
     </ul>
   </div>
 </template>
@@ -39,6 +39,7 @@
 <script>
   import Card from '../components/Card.vue'
   import db from '../firebase/firebaseInit.js'
+
   import {
     collection,
     getDocs,
@@ -71,41 +72,6 @@
       }
     },
     async mounted() {
-      // Load collections from session storage if possible
-      const storedTagMap = sessionStorage.getItem(this.STORED_TAG_MAP);
-      const storedImgMap = sessionStorage.getItem(this.STORED_IMG_MAP);
-      const storedTimestamp = sessionStorage.getItem(this.STORED_DATA_TIMESTAMP);
-
-      if ((storedTimestamp && Date.now() - storedTimestamp < 86400000) && storedTagMap && storedImgMap) {
-        this.tagMap = JSON.parse(storedTagMap);
-        this.imgMap = JSON.parse(storedImgMap);
-      } else {
-
-        // Get the tag collection from firestore
-        const querySnapshot = await getDocs(collection(db, this.HIERARCHY_COLLECTION));
-        querySnapshot.forEach((doc) => {
-          this.tagMap.push({
-            "tag": doc.id,
-            "hierarchy": doc.data()
-          });
-        });
-
-        // Get image link collection form firestore
-        const illustrationData = await getDocs(collection(db, this.IMG_LINK_COLLECTION));
-        illustrationData.forEach((doc) => {
-          this.imgMap.push({
-            "uid": doc.id,
-            "metadata": doc.data(),
-          });
-        });
-
-        // Save the current collections in session storage for ease of access
-        sessionStorage.setItem(this.STORED_DATA_TIMESTAMP, Date.now());
-        sessionStorage.setItem(this.STORED_TAG_MAP, JSON.stringify(this.tagMap));
-        sessionStorage.setItem(this.STORED_IMG_MAP, JSON.stringify(this.imgMap));
-      }
-
-
 
       // Set Gallery Components with appropriate content
 
@@ -137,21 +103,24 @@
           subcategory: "",
           tag: "",
         },
-        currentCardChoices: [],
 
-        // Firestore collection names
-        HIERARCHY_COLLECTION: 'DanbooruTags', // contains all tags that can be viewed in sdanbooru wiki
-        IMG_LINK_COLLECTION: 'TagIllustrations', // contains all img links for tags in the tag map
+        currentNavCardChoices: [],
+        currentTagCardChoices: [],
+        currentPrompt: "example, prompt, masterpiece, best quality",
+
+        // Firestore collection names: collections are nested inside each other
+        FIRESTORE_TAG_GROUPS: 'tag_groups',
+        FIRESTORE_CATEGORIES: 'categories',
+        FIRESTORE_SUBCATEGORIES: 'subcategories',
+        FIRESTORE_TAGS: 'tags',
+        FIRESTORE_TAG_ILLUSTRATION_DATA: 'illustrations',
         //  session storage for firestore collections
-        STORED_TAG_MAP: 'STORED_TAG_MAP',
-        STORED_IMG_MAP: 'STORED_IMG_MAP',
-        STORED_DATA_TIMESTAMP: 'STORED_DATA_TIMESTAMP',
+        SESSION_STORAGE_TAG_GROUPS: 'storedTagGroups',
+        SESSION_STORAGE_CATEGORIES: 'storedCategories',
+        SESSION_STORAGE_SUBCATEGORIES: 'storedSubcategories',
+        SESSION_STORAGE_TAGS: 'storedTags',
 
         NAVIGATION_STATE: 'GALLERY_NAVIGATION_STATE',
-
-        // gallery content maps
-        tagMap: [],
-        imgMap: [],
 
         // Gallery filter options
         selectedCheckpoint: "",
@@ -159,6 +128,8 @@
 
         availableCheckpoints: [],
         availablePrompts: [],
+
+        illustrationCardComponent: null,
       }
     },
     props: {
@@ -201,55 +172,119 @@
       // GETTERS
 
       async getTagGroups() {
-        const tagGroupSet = new Set();
-        this.tagMap.forEach((doc) => {
-          tagGroupSet.add(this.keyToTitle(doc.hierarchy["tag group"]));
-        });
-        const tagGroups = Array.from(tagGroupSet);
-        this.currentCardChoices = tagGroups;
+        // Check session storage first
+        const storedTagGroups = sessionStorage.getItem(this.SESSION_STORAGE_TAG_GROUPS);
+        if (storedTagGroups && JSON.parse(storedTagGroups).length > 0) {
+          console.log("Took tag groups from session storage!");
 
-        //save changes to session storage
+          const tagGroups = JSON.parse(storedTagGroups);
+
+          this.currentNavCardChoices = tagGroups;
+        } else {
+          console.log("Requested tag groups from firestore!");
+          const tagGroups = [];
+          const q = collection(db, this.FIRESTORE_TAG_GROUPS);
+          const querySnapshot = await getDocs(q);
+
+          querySnapshot.forEach((doc) => {
+            tagGroups.push(this.keyToTitle(doc.id));
+          })
+          sessionStorage.setItem(this.SESSION_STORAGE_TAG_GROUPS, JSON.stringify(tagGroups));
+          this.currentNavCardChoices = tagGroups;
+        }
+      },
+      // Load categories of selected tag group from session storage or cloud firestore
+      async getTagGroupCategories(tagGroup) {
+        const storedCategories = sessionStorage.getItem(this.SESSION_STORAGE_CATEGORIES);
+        if (storedCategories && JSON.parse(storedCategories).length > 0) {
+          console.log("Taking categories from session storage!");
+
+          const categories = JSON.parse(storedCategories);
+          this.currentNavCardChoices = categories;
+        } else {
+          console.log("Requesting categories from cloud firestore!");
+          const categories = [];
+          const q = collection(db, this.FIRESTORE_TAG_GROUPS, this.titleToKey(tagGroup), this.FIRESTORE_CATEGORIES);
+          console.log(q);
+          try {
+            const querySnapshot = await getDocs(q);
+            console.log(querySnapshot);
+            querySnapshot.forEach((doc) => {
+              categories.push(doc.id);
+            });
+            sessionStorage.setItem(this.SESSION_STORAGE_CATEGORIES, JSON.stringify(categories));
+            this.currentNavCardChoices = categories;
+          } catch (e) {
+            console.log("Error getting collection: ", e);
+          }
+
+        }
       },
 
-      getTagGroupCategories(tagGroup) {
-        const categorySet = new Set();
-        this.tagMap.forEach((doc) => {
-          if (doc.hierarchy["tag group"] == tagGroup) {
-            categorySet.add(this.keyToTitle(doc.hierarchy.category));
-          }
-          const categories = Array.from(categorySet);
-          this.currentCardChoices = categories;
-        })
-        // this.currentCardChoices = categories;
+      // Load subcategories of selected category from session storage or cloud firestore
+      async getCategorySubTags(category) {
 
+        // Dynamic import of illustrated Card Component
+        try{
+        const { default: IllustratedCard } = await import('../components/IllustratedCard.vue');
+        this.illustrationCardComponent = IllustratedCard;
+        console.log('Card component loaded succesfully:', IllustratedCard);
+        }catch(error){
+          console.error('Failed to import Card component:', error)
+        }
+        
+
+        const storedSubcategories = sessionStorage.getItem(this.SESSION_STORAGE_SUBCATEGORIES);
+        if (storedSubcategories && JSON.parse(storedSubcategories).length > 0) {
+          console.log("Taking subcategories and tags from session storage!");
+
+          const subcategories = JSON.parse(storedSubcategories);
+          this.currentNavCardChoices = subcategories;
+        } else {
+          console.log("Taking subcategories and tags from cloud firestore!")
+          const subcategories = [];
+          const tagsIllustrationInfo = []
+          const subquery = collection(db, this.FIRESTORE_TAG_GROUPS, this.selected.tagGroup, this
+            .FIRESTORE_CATEGORIES, category, this.FIRESTORE_SUBCATEGORIES);
+          const tagquery = collection(db, this.FIRESTORE_TAG_GROUPS, this.selected.tagGroup, this
+            .FIRESTORE_CATEGORIES, category, this.FIRESTORE_TAGS);
+
+          const subquerySnapshot = await getDocs(subquery);
+          const tagquerySnapshot = await getDocs(tagquery);
+
+          subquerySnapshot.forEach((doc) => {
+            subcategories.push(doc.id);
+          })
+          // Store tags separately as they will contain metadata and illustration relevant to display
+          tagquerySnapshot.forEach((doc) => {
+            tagsIllustrationInfo.push(doc);
+          })
+          this.currentNavCardChoices = subcategories;
+          this.currentTagCardChoices = tagsIllustrationInfo;
+          sessionStorage.setItem(this.SESSION_STORAGE_SUBCATEGORIES, JSON.stringify(subcategories));
+          sessionStorage.setItem(this.SESSION_STORAGE_TAGS, JSON.stringify(tagsIllustrationInfo));
+        }
 
       },
-      getCategorySubTags(category) {
-        const subcategorySet = new Set();
-        const tagSet = new Set();
-        this.tagMap.forEach((doc) => {
-          if (doc.hierarchy.category == category) {
-            let subcategory = doc.hierarchy.subcategory;
-            if (subcategory) {
-              subcategorySet.add(this.keyToTitle(subcategory));
-            } else {
-              tagSet.add(doc.tag);
-            }
-          }
+      async getSubcategoryTags(subcategory) {
+        try{
+        const { default: IllustratedCard } = await import('../components/IllustratedCard.vue');
+        this.illustrationCardComponent = IllustratedCard;
+        console.log('Card component loaded succesfully:', IllustratedCard);
+        }catch(error){
+          console.error('Failed to import Card component:', error)
+        }
+
+        const tagsIllustrationInfo = []
+        const tagquery = collection(db, this.FIRESTORE_TAG_GROUPS, this.selected.tagGroup, this
+            .FIRESTORE_CATEGORIES, this.selected.category, this.FIRESTORE_SUBCATEGORIES, subcategory, this.FIRESTORE_TAGS);
+        const tagquerySnapshot = await getDocs(tagquery);
+
+        tagquerySnapshot.forEach((doc) => {
+          tagsIllustrationInfo.push(doc);
         });
-        const subcategories = Array.from(subcategorySet);
-        const tags = Array.from(tagSet);
-        this.currentCardChoices = [...subcategories, ...tags]
-      },
-      getSubcategoryTags(subcategory) {
-        const tagSet = new Set();
-        this.tagMap.forEach((doc) => {
-          if (doc.hierarchy.subcategory == subcategory) {
-            tagSet.add(doc.tag)
-          }
-        });
-        const tags = Array.from(tagSet);
-        this.currentCardChoices = tags;
+        this.currentNavCardChoices = [];
+        this.currentTagCardChoices = tagsIllustrationInfo;
 
       },
       getTagDetails(tag) {
@@ -259,18 +294,28 @@
         if (this.level > 0) {
           switch (this.level) {
             case HierarchyLevels.CATEGORY:
+              console.log("Navigating up from categories!");
               this.selected.tagGroup = null;
+              sessionStorage.setItem(this.SESSION_STORAGE_CATEGORIES, []);
               this.getTagGroups();
               break;
             case HierarchyLevels.SUBCATEGORY:
+              console.log("Navigating up from subcategories!");
               this.selected.category = null;
+              this.currentTagCardChoices = null;
+              this.currentNavCardChoices = null;
+              sessionStorage.setItem(this.SESSION_STORAGE_SUBCATEGORIES, []);
+              sessionStorage.setItem(this.SESSION_STORAGE_TAGS, []);
+
               this.getTagGroupCategories(this.selected.tagGroup);
               break;
             case HierarchyLevels.TAG:
-              this.getCategorySubTags(this.selected.category)
+              console.log("Navigating up from tags!");
+              sessionStorage.setItem(this.SESSION_STORAGE_TAGS, []);
               this.selected.subcategory = null;
-
-
+              this.currentNavCardChoices = null;
+              this.currentTagCardChoices = null;
+              this.getCategorySubTags(this.selected.category);
               break;
           }
           this.level--;
@@ -278,10 +323,11 @@
         }
       },
       titleToKey(title) {
-        return title.toLowerCase(); //.replace(/[\s#]/g, '_').replace(/\s+/g, "");
+        return title.toLowerCase().replace(" ", "_"); //.replace(/[\s#]/g, '_').replace(/\s+/g, "");
       },
       keyToTitle(key) {
         let title = key.charAt(0).toUpperCase() + key.slice(1);
+        title = title.replace('_', ' ');
         return title;
       },
       saveNavigationState() {
@@ -305,9 +351,6 @@
         }
       }
     },
-    components: {
-      Card
-    }
   }
 </script>
 
@@ -320,23 +363,18 @@
 
   .metadata {
     background-color: black;
-    color: white;
+    color: var(--primary-900);
     font-family: Arial, Helvetica, sans-serif;
     border-radius: 5px;
     padding: 0.5vmin;
     margin: 2px;
     display: flex;
     gap: 2vmin;
-
-    .checkpoint-option {
-      align-self: center;
-      border-radius: 11px;
-      padding: 0.5vmin;
-      border: 1px solid white;
-    }
+    min-height: 30px;
 
     .prompt-option {
       align-self: center;
+      padding: 0.1vmin;
     }
   }
 
@@ -384,8 +422,7 @@
   }
 
 
-  .return,
-  .copy-clipboard {
+  .return {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -404,9 +441,5 @@
       width: 32px;
       height: 32px;
     }
-  }
-
-  .copy-clipboard {
-    border: 2px solid black;
   }
 </style>
